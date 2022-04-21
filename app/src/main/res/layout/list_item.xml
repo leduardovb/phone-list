@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".PhoneListAdapter" >
+
+    <TextView
+        android:id="@+id/name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Eduardo"
+        android:textSize="34sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/cellphone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/name"
+        android:layout_marginBottom="-45dp"
+        android:text="(44) 9 9928-5054" />
+
+    <TextView
+        android:id="@+id/address"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/name"
+        android:layout_marginStart="13dp"
+        android:layout_marginBottom="-45dp"
+        android:layout_toEndOf="@+id/cellphone"
+        android:text="Av. Capitão Índio Bandeira" />
+
+    <TextView
+        android:id="@+id/observation"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/name"
+        android:layout_marginStart="13dp"
+        android:layout_marginBottom="-45dp"
+        android:layout_toEndOf="@+id/address"
+        android:text="Programador" />
+
+</RelativeLayout>
