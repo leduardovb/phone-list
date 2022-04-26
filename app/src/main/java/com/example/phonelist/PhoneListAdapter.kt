@@ -15,8 +15,8 @@ class PhoneListAdapter(
 
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-        val inflater: LayoutInflater = LayoutInflater.from(context) as LayoutInflater
-        val view: View = inflater.inflate(R.layout.list_item, null)
+        val inflater: LayoutInflater = LayoutInflater.from(myContext) as LayoutInflater
+        val view: View = inflater.inflate(resource, null)
 
         val textName: TextView = view.findViewById(R.id.name)
         val textPhone: TextView = view.findViewById(R.id.cellphone)
