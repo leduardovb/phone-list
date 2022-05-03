@@ -4,6 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto">
+
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -13,6 +14,7 @@
             android:id="@+id/contacts"
             android:layout_width="match_parent"
             android:layout_height="753dp">
+
         </ListView>
     </RelativeLayout>
 
@@ -28,4 +30,5 @@
         android:contentDescription="@string/fab_transformation_scrim_behavior"
         android:src="@drawable/add_contact"
         app:fabSize="normal" />
+
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
