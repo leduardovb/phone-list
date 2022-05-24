@@ -1,4 +1,4 @@
-package com.example.phonelist;
+package com.example.phonelist.models;
 
 import java.util.ArrayList;
 
@@ -27,6 +27,10 @@ public class Contact {
         this.cellphone = cellphone;
     }
 
+    public Contact() {
+
+    }
+
     @Override
     public String toString() {
         return "Contact{" +
@@ -39,6 +43,8 @@ public class Contact {
     }
 
     public Integer getId() { return id; }
+
+    public void setId(Integer id) { this.id = id; }
 
     public String getName() {
         return name;
@@ -64,11 +70,13 @@ public class Contact {
         this.telephone = telephone;
     }
 
-    public String getCellphone() {
-        return cellphone;
-    }
+    public String getCellphone() { return cellphone; }
 
     public void setCellphone(String cellphone) {
         this.cellphone = cellphone;
+    }
+
+    static public void updateContactByIndex(Integer index, Contact newContact) {
+        if (index < contacts.size()) contacts.add(index, newContact);
     }
 }

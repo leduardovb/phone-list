@@ -19,7 +19,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ContactDetail"
+            android:name="ContactDetail"
             android:exported="false" />
     </application>
 
