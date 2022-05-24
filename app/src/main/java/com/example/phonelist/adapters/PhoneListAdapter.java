@@ -1,4 +1,4 @@
-package com.example.phonelist;
+package com.example.phonelist.adapters;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -10,11 +10,14 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.example.phonelist.R;
+import com.example.phonelist.models.Contact;
+
 import java.util.ArrayList;
-import java.util.zip.Inflater;
 
 public class PhoneListAdapter extends ArrayAdapter<Contact> {
 
+    private Contact contact;
     private TextView textName, textAddress, textTelephone, textCellphone;
 
     public PhoneListAdapter(@NonNull Context context, ArrayList<Contact> contacts) {
@@ -24,11 +27,11 @@ public class PhoneListAdapter extends ArrayAdapter<Contact> {
     @NonNull
     @Override
     public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
-        Contact contact = getItem(position);
+        this.contact = getItem(position);
         if (convertView == null) convertView = LayoutInflater.from(getContext()).inflate(R.layout.list_item, parent, false);
 
         setInitWidgets(convertView);
-        setTextInInitWidgets(contact);
+        setTextInInitWidgets(this.contact);
 
         return convertView;
     }
@@ -45,6 +48,10 @@ public class PhoneListAdapter extends ArrayAdapter<Contact> {
         textAddress.setText(contact.getAddress());
         textTelephone.setText(contact.getTelephone());
         textCellphone.setText(contact.getCellphone());
+    }
+
+    private Contact getContact() {
+        return this.contact;
     }
 
 }
