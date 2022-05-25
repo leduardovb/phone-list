@@ -10,6 +10,7 @@ import com.example.phonelist.models.Contact;
 public class ContactService {
 
     private final static String TABLE_NAME = "CONTACT";
+    private final static String ID_FIELD = "id";
     private final static String NAME_FIELD = "name";
     private final static String ADDRESS_FIELD = "address";
     private final static String TELEPHONE_FIELD = "telephone";
@@ -40,7 +41,7 @@ public class ContactService {
         sqLiteManager.close();
     }
 
-    public void newContact(Contact contact) {
+    public int newContact(Contact contact) {
         SQLiteManager sqLiteManager = SQLiteManager.insanceOfDatabse(this.context, TABLE_NAME);
         ContentValues contentValues = new ContentValues();
 
@@ -51,5 +52,23 @@ public class ContactService {
 
         long savedId = sqLiteManager.insert(contentValues);
         sqLiteManager.close();
+        return (int) savedId;
+    }
+
+    public boolean updateContact(Contact contact) {
+        SQLiteManager sqLiteManager = SQLiteManager.insanceOfDatabse(this.context, TABLE_NAME);
+        ContentValues contentValues = new ContentValues();
+        String where = "id =?";
+        String[] whereValues = {Integer.toString(contact.getId())};
+
+        contentValues.put(ID_FIELD, contact.getId());
+        contentValues.put(NAME_FIELD, contact.getName());
+        contentValues.put(ADDRESS_FIELD, contact.getAddress());
+        contentValues.put(TELEPHONE_FIELD, contact.getTelephone());
+        contentValues.put(CELLPHONE_FIELD, contact.getCellphone());
+
+        Integer rows = sqLiteManager.update(contentValues, where, whereValues);
+        sqLiteManager.close();
+        return rows > 0;
     }
 }

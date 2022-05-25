@@ -77,6 +77,13 @@ public class Contact {
     }
 
     static public void updateContactByIndex(Integer index, Contact newContact) {
-        if (index < contacts.size()) contacts.add(index, newContact);
+        if (index < contacts.size()) {
+            Contact oldContact = contacts.get(index);
+            oldContact.setId(newContact.getId());
+            oldContact.setName(newContact.getName());
+            oldContact.setAddress(newContact.getAddress());
+            oldContact.setTelephone(newContact.getTelephone());
+            oldContact.setCellphone(newContact.getCellphone());
+        }
     }
 }

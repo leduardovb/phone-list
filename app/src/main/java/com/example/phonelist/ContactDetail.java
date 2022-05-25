@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import com.example.phonelist.models.Contact;
@@ -11,6 +12,8 @@ import com.example.phonelist.models.Contact;
 
 public class ContactDetail extends AppCompatActivity {
 
+    private Integer contactId = -1;
+    private Integer contactIndex = -1;
     private ImageButton saveButton, exitButton;
     private EditText editTextName, editTextAddress, editTextTelephone, editTextCellphone;
 
@@ -19,8 +22,21 @@ public class ContactDetail extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_contact_detail);
         setInitWidgets();
+        setIntentValuesIfExist();
         exitButtonOnClick();
         saveButtonClick();
+    }
+
+    private void setIntentValuesIfExist() {
+        Intent intent = getIntent();
+        if (intent.hasExtra("id")) {
+            contactIndex = intent.getIntExtra("index", -1);
+            contactId = intent.getIntExtra("id", - 1);
+            editTextName.setText(intent.getStringExtra("name"));
+            editTextAddress.setText(intent.getStringExtra("address"));
+            editTextTelephone.setText(intent.getStringExtra("telephone"));
+            editTextCellphone.setText(intent.getStringExtra("cellphone"));
+        }
     }
 
     private void setInitWidgets() {
@@ -42,19 +58,30 @@ public class ContactDetail extends AppCompatActivity {
 
     public void saveButtonClick() {
         saveButton.setOnClickListener(view -> {
-            String name = String.valueOf(editTextName.getText());
-            String address = String.valueOf(editTextAddress.getText());
-            String telephone = String.valueOf(editTextTelephone.getText());
-            String cellphone = String.valueOf(editTextCellphone.getText());
+            String operation = contactId != -1 ? SqlMethods.UPDATE.name() : SqlMethods.INSERT.name();
+            Integer index = contactIndex != -1 ? contactIndex : Contact.contacts.size() - 1;
 
-            Integer id = Contact.contacts.size();
-            Contact contact = new Contact(id, name, address, telephone, cellphone);
-            Contact.contacts.add(contact);
+            handleOperation(index, operation);
 
             Intent intent = new Intent();
+            intent.putExtra("index", index);
+            intent.putExtra("operation", operation);
             setResult(RESULT_OK, intent);
             finish();
         });
+    }
+
+    private void handleOperation(int index, String operation) {
+        Integer id = contactId != -1 ? contactId : Contact.contacts.size();
+        String name = String.valueOf(editTextName.getText());
+        String address = String.valueOf(editTextAddress.getText());
+        String telephone = String.valueOf(editTextTelephone.getText());
+        String cellphone = String.valueOf(editTextCellphone.getText());
+
+        Contact contact = new Contact(id, name, address, telephone, cellphone);
+
+        if (operation.equals(SqlMethods.INSERT.name())) Contact.contacts.add(contact);
+        else Contact.contacts.set(index, contact);
     }
 
 }

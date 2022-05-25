@@ -71,9 +71,9 @@ public class SQLiteManager extends SQLiteOpenHelper {
         }
     }
 
-    public int update(ContentValues contentValues, String where, String[] values) {
+    public int update(ContentValues contentValues, String where, String[] whereValues) {
         SQLiteDatabase sqliteDatabase = sqLiteManager.getWritableDatabase();
-        return sqliteDatabase.update(TABLE_NAME, contentValues, where, values);
+        return sqliteDatabase.update(TABLE_NAME, contentValues, where, whereValues);
     }
 
 }
