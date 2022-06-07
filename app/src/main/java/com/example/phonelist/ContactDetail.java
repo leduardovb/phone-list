@@ -4,10 +4,12 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.widget.EditText;
 import android.widget.ImageButton;
+
 import com.example.phonelist.models.Contact;
+import com.example.phonelist.models.Toast;
+import com.example.phonelist.services.ContactService;
 
 
 public class ContactDetail extends AppCompatActivity {
@@ -16,6 +18,8 @@ public class ContactDetail extends AppCompatActivity {
     private Integer contactIndex = -1;
     private ImageButton saveButton, exitButton;
     private EditText editTextName, editTextAddress, editTextTelephone, editTextCellphone;
+    private final ContactService contactService = new ContactService(this);
+    private final Toast toast = new Toast(this);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,30 +62,61 @@ public class ContactDetail extends AppCompatActivity {
 
     public void saveButtonClick() {
         saveButton.setOnClickListener(view -> {
-            String operation = contactId != -1 ? SqlMethods.UPDATE.name() : SqlMethods.INSERT.name();
-            Integer index = contactIndex != -1 ? contactIndex : Contact.contacts.size() - 1;
+            String operation = contactId != -1 ? SQL_OPERATIONS.UPDATE.name() : SQL_OPERATIONS.INSERT.name();
 
-            handleOperation(index, operation);
-
-            Intent intent = new Intent();
-            intent.putExtra("index", index);
-            intent.putExtra("operation", operation);
-            setResult(RESULT_OK, intent);
-            finish();
+            if (handleOperation(operation)) {
+                Intent intent = new Intent();
+                setResult(RESULT_OK, intent);
+                finish();
+            }
         });
     }
 
-    private void handleOperation(int index, String operation) {
+    private boolean handleOperation(String operation) {
+        Contact contact = getContactData();
+        String message = "Favor preencher todos os campos!";
+        boolean status = false;
+
+        if (validateContactFields(contact)) {
+            if (operation.equals(SQL_OPERATIONS.INSERT.name())) {
+                int savedId = contactService.newContact(contact);
+                if (savedId != -1) {
+                    status = true;
+                    contact.setId(savedId);
+                    Contact.contacts.add(contact);
+                    message = "Contato inserido com sucesso";
+                } else message = "Erro ao inserir o contato!";
+            } else {
+                if (contactService.updateContact(contact)) {
+                    status = true;
+                    Contact.contacts.set(contactIndex, contact);
+                    message = "Contato atualizado com sucesso";
+                }
+                else message = "Erro ao atualizar o contato";
+            };
+        }
+
+        toast.showLongMessage(message);
+        return status;
+    }
+
+    private Contact getContactData() {
         Integer id = contactId != -1 ? contactId : Contact.contacts.size();
         String name = String.valueOf(editTextName.getText());
         String address = String.valueOf(editTextAddress.getText());
         String telephone = String.valueOf(editTextTelephone.getText());
         String cellphone = String.valueOf(editTextCellphone.getText());
 
-        Contact contact = new Contact(id, name, address, telephone, cellphone);
+        return new Contact(id, name, address, telephone, cellphone);
+    }
 
-        if (operation.equals(SqlMethods.INSERT.name())) Contact.contacts.add(contact);
-        else Contact.contacts.set(index, contact);
+    private boolean validateContactFields(Contact contact) {
+        boolean isValidated = true;
+        if (contact.getName().length() == 0) isValidated = false;
+        else if (contact.getAddress().length() == 0) isValidated = false;
+        else if (contact.getTelephone().length() == 0) isValidated = false;
+        else if (contact.getCellphone().length() == 0) isValidated = false;
+        return isValidated;
     }
 
 }

@@ -1,6 +1,6 @@
 package com.example.phonelist;
 
-public enum SqlMethods {
+public enum SQL_OPERATIONS {
     INSERT,
     UPDATE,
     DELETE

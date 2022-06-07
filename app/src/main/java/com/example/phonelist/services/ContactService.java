@@ -7,6 +7,10 @@ import android.database.Cursor;
 import com.example.phonelist.database.SQLiteManager;
 import com.example.phonelist.models.Contact;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.List;
+
 public class ContactService {
 
     private final static String TABLE_NAME = "CONTACT";
@@ -71,4 +75,5 @@ public class ContactService {
         sqLiteManager.close();
         return rows > 0;
     }
+
 }
