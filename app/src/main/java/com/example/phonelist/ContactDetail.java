@@ -91,8 +91,7 @@ public class ContactDetail extends AppCompatActivity {
                     status = true;
                     Contact.contacts.set(contactIndex, contact);
                     message = "Contato atualizado com sucesso";
-                }
-                else message = "Erro ao atualizar o contato";
+                } else message = "Erro ao atualizar o contato";
             };
         }
 

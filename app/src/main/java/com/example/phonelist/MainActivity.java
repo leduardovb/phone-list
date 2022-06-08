@@ -3,11 +3,12 @@ package com.example.phonelist;
 import android.annotation.SuppressLint;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
@@ -16,9 +17,9 @@ import android.widget.ListView;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.phonelist.adapters.PhoneListAdapter;
+import com.example.phonelist.models.AlertModal;
 import com.example.phonelist.models.Contact;
 import com.example.phonelist.models.Notification;
 import com.example.phonelist.services.ContactService;
@@ -26,12 +27,13 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final int SWAP_LIMITY = 70;
-    private static final int SWAP_VELOCITY_LIMITY = 70;
+    private static final int SWAP_LIMIT = 70;
+    private static final int SWAP_VELOCITY_LIMIT = 70;
 
     private ListView listView;
     private PhoneListAdapter phoneListAdapter;
     private ActivityResultLauncher<Intent> register;
+    private AlertModal alertModal;
     private final ContactService contactService = new ContactService(this);
     private final Notification notification = new Notification(this);
     private GestureDetector gestureDetector;
@@ -40,7 +42,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        gestureDetector = new GestureDetector(this, new GestureListener());
         createNotificationChannel();
         initWidgets();
         onResult();
@@ -48,6 +49,8 @@ public class MainActivity extends AppCompatActivity {
         getContactListFromDatabase();
         setPhoneListAdapter();
         showNotificationLink();
+        buildAlertModal();
+        gestureDetector = new GestureDetector(this, new GestureListener(this, register, alertModal, phoneListAdapter));
     }
 
     @Override
@@ -67,31 +70,18 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+    private void buildAlertModal() {
+        alertModal = new AlertModal(MainActivity.this);
+        alertModal.buildModal("Tem certeza de sua escolha?", "Podemos fazer do jeito difícil ou fácil... Qual vai escolher?", true);
+    }
+
     private void initWidgets() {
         listView = findViewById(R.id.contacts);
     }
 
     private void onResult() {
         register = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
-
-            if (result.getResultCode() == RESULT_OK) {
-                Intent intent = result.getData();
-                if (intent != null && intent.hasExtra("operation")) {
-                    int contactIndex = intent.getIntExtra("index", -1);
-                    String operation = intent.getStringExtra("operation");
-                    if (contactIndex != - 1) {
-                        Contact savedContact = Contact.contacts.get(contactIndex);
-                        if (operation.equals(SQL_OPERATIONS.INSERT.name())) {
-                            int savedId = contactService.newContact(savedContact);
-                            if (savedId != -1) {
-                                savedContact.setId(savedId);
-                                Contact.updateContactByIndex(contactIndex, savedContact);
-                            } else Contact.contacts.remove(contactIndex);
-                        } else contactService.updateContact(Contact.contacts.get(contactIndex));
-                    }
-                    phoneListAdapter.notifyDataSetChanged();
-                }
-            }
+            if (result.getResultCode() == RESULT_OK) phoneListAdapter.notifyDataSetChanged();
         });
     }
 
@@ -102,19 +92,45 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void setLongClickListenerInList() {
-        listView.setOnItemLongClickListener((parent, view, index, id) -> {
-            Contact selectedContact = Contact.contacts.get(index);
-            Bundle bundle = new Bundle();
-            bundle.putInt("index", index);
-            bundle.putInt("id", selectedContact.getId());
-            bundle.putString("name", selectedContact.getName());
-            bundle.putString("address", selectedContact.getAddress());
-            bundle.putString("telephone", selectedContact.getTelephone());
-            bundle.putString("cellphone", selectedContact.getCellphone());
-            Intent intent = new Intent(this, ContactDetail.class);
+    static public void showAlertModal(Context context, AlertModal alertModal, ActivityResultLauncher<Intent> register, PhoneListAdapter phoneListAdapter, Integer index) {
+        DialogInterface.OnClickListener onClickPositiveButton = (dialog, which) -> {
+            Contact contact = Contact.contacts.get(index);
+            ContactService service = new ContactService(context);
+            if (service.deleteContact(contact)) {
+                Contact.contacts.remove(contact);
+                phoneListAdapter.notifyDataSetChanged();
+            }
+        };
+
+        DialogInterface.OnClickListener onClickNegativeButton = (dialog, which) -> {
+            Bundle bundle = generateContactBundleByIndex(index);
+            Intent intent = new Intent(context, ContactDetail.class);
             intent.putExtras(bundle);
             register.launch(intent);
+        };
+
+        alertModal.setPositiveButton("Excluir", onClickPositiveButton);
+        alertModal.setNegativeButton("Alterar", onClickNegativeButton);
+        alertModal.show();
+    }
+
+    static private Bundle generateContactBundleByIndex(Integer index) {
+        Contact selectedContact = Contact.contacts.get(index);
+
+        Bundle bundle = new Bundle();
+        bundle.putInt("index", index);
+        bundle.putInt("id", selectedContact.getId());
+        bundle.putString("name", selectedContact.getName());
+        bundle.putString("address", selectedContact.getAddress());
+        bundle.putString("telephone", selectedContact.getTelephone());
+        bundle.putString("cellphone", selectedContact.getCellphone());
+
+        return bundle;
+    }
+
+    private void setLongClickListenerInList() {
+        listView.setOnItemLongClickListener((parent, view, index, id) -> {
+            showAlertModal(MainActivity.this, alertModal, register, phoneListAdapter, index);
             return false;
         });
     }
@@ -151,12 +167,28 @@ public class MainActivity extends AppCompatActivity {
 
     static class GestureListener extends GestureDetector.SimpleOnGestureListener {
 
+        private final ActivityResultLauncher<Intent> register;
+        private final Context context;
+        private final AlertModal alertModal;
+        private final PhoneListAdapter phoneListAdapter;
+
+        public GestureListener(Context context, ActivityResultLauncher<Intent> register, AlertModal alertModal, PhoneListAdapter phoneListAdapter) {
+            this.context = context;
+            this.register = register;
+            this.alertModal = alertModal;
+            this.phoneListAdapter = phoneListAdapter;
+        }
+
         @Override
         public boolean onFling(MotionEvent event1, MotionEvent event2, float velocityX, float velocityY) {
             float xDifference = event1.getX() - event2.getX();
             if (validateSwapping(xDifference, velocityX)) {
                 if (isRightSwapping(xDifference)) {
-
+                    Intent intent = new Intent(context, ContactDetail.class);
+                    register.launch(intent);
+                } else {
+                    int listSize = Contact.contacts.size();
+                    if (listSize >= 1) MainActivity.showAlertModal(context, alertModal, register, phoneListAdapter, listSize - 1);
                 }
             }
             return true;
@@ -167,7 +199,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         private boolean validateSwapping(float xDifference, float velocityX) {
-            return Math.abs(xDifference) > SWAP_LIMITY && Math.abs(velocityX) > SWAP_VELOCITY_LIMITY;
+            return Math.abs(xDifference) > SWAP_LIMIT && Math.abs(velocityX) > SWAP_VELOCITY_LIMIT;
         }
     }
 }

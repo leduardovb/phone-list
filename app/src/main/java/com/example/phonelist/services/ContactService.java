@@ -4,8 +4,10 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 
+import com.example.phonelist.R;
 import com.example.phonelist.database.SQLiteManager;
 import com.example.phonelist.models.Contact;
+import com.example.phonelist.models.Notification;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
@@ -21,9 +23,11 @@ public class ContactService {
     private final static String CELLPHONE_FIELD = "cellphone";
 
     private final Context context;
+    private Notification notification;
 
     public ContactService(Context context) {
         this.context = context;
+        this.notification = new Notification(context);
     }
 
     public void list() {
@@ -56,6 +60,12 @@ public class ContactService {
 
         long savedId = sqLiteManager.insert(contentValues);
         sqLiteManager.close();
+
+        if (savedId != -1) notification
+                            .showNotification("Novo contato adicionado",
+                                    "O contato " + contact.getName() + " foi adicionado",
+                                    R.drawable.add_contact
+                        );
         return (int) savedId;
     }
 
@@ -73,6 +83,24 @@ public class ContactService {
 
         Integer rows = sqLiteManager.update(contentValues, where, whereValues);
         sqLiteManager.close();
+
+        return rows > 0;
+    }
+
+    public boolean deleteContact(Contact contact) {
+        SQLiteManager sqLiteManager = SQLiteManager.insanceOfDatabse(this.context, TABLE_NAME);
+
+        String where = "id =?";
+        String[] whereValues = {Integer.toString(contact.getId())};
+
+        int rows = sqLiteManager.delete(where, whereValues);
+        sqLiteManager.close();
+
+        if (rows > 0) notification.showNotification("Contato deletado",
+                "O contato " + contact.getName() + " foi deletado",
+                R.drawable.delete_icon
+        );
+
         return rows > 0;
     }
 

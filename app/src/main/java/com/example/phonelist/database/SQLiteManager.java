@@ -76,4 +76,9 @@ public class SQLiteManager extends SQLiteOpenHelper {
         return sqliteDatabase.update(TABLE_NAME, contentValues, where, whereValues);
     }
 
+    public int delete(String where, String[] whereArgs) {
+        SQLiteDatabase sqliteDatabase = sqLiteManager.getWritableDatabase();
+        return sqliteDatabase.delete(TABLE_NAME, where, whereArgs);
+    }
+
 }
